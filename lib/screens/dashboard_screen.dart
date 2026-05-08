@@ -1,5 +1,8 @@
 import 'package:flutter/material.dart';
 import 'login_screen.dart';
+import '../models/campaign_model.dart';
+import '../widgets/campaign_card.dart';
+import '../utils/currency_format.dart';
 
 // --- Placeholder Screen untuk Halaman Kosong ---
 class KategoriKosongScreen extends StatelessWidget {
@@ -48,21 +51,6 @@ class _DashboardScreenState extends State<DashboardScreen> {
   // State Dinamis Saldo
   double _saldo = 1250000;
 
-  // Helper untuk format Rupiah
-  String formatRupiah(double amount) {
-    String price = amount.toStringAsFixed(0);
-    String result = '';
-    int count = 0;
-    for (int i = price.length - 1; i >= 0; i--) {
-      count++;
-      result = price[i] + result;
-      if (count % 3 == 0 && i != 0) {
-        result = '.$result';
-      }
-    }
-    return result;
-  }
-
   // 4 Jenis Donasi Familiar sesuai permintaan (akan didirect ke halaman kosong)
   final List<Map<String, dynamic>> _menuDonasi = [
     {'title': 'Zakat', 'icon': Icons.mosque, 'color': Colors.green},
@@ -71,27 +59,29 @@ class _DashboardScreenState extends State<DashboardScreen> {
     {'title': 'Medis', 'icon': Icons.medical_services, 'color': Colors.red},
   ];
 
-  // 10 Item Dummy Campaign
-  final List<Map<String, dynamic>> _campaigns = [
-    {'title': 'Bantu Korban Banjir Bandang Demak', 'category': 'Bencana', 'progress': 0.7, 'target': 'Rp 50.000.000', 'icon': Icons.flood},
-    {'title': 'Bantuan Evakuasi Gempa Bumi', 'category': 'Bencana', 'progress': 0.4, 'target': 'Rp 100.000.000', 'icon': Icons.broken_image},
-    {'title': 'Bantu Biaya Operasi Dek Fatih', 'category': 'Medis', 'progress': 0.8, 'target': 'Rp 20.000.000', 'icon': Icons.healing},
-    {'title': 'Penyaluran Oksigen Darurat', 'category': 'Medis', 'progress': 0.9, 'target': 'Rp 15.000.000', 'icon': Icons.medical_information},
-    {'title': 'Zakat Fitrah & Maal 2026', 'category': 'Zakat', 'progress': 0.5, 'target': 'Rp 200.000.000', 'icon': Icons.mosque},
-    {'title': 'Sedekah Subuh Rutin', 'category': 'Sedekah', 'progress': 0.6, 'target': 'Rp 10.000.000', 'icon': Icons.wb_twilight},
-    {'title': 'Pembangunan Masjid Desa', 'category': 'Sedekah', 'progress': 0.3, 'target': 'Rp 150.000.000', 'icon': Icons.account_balance},
-    {'title': 'Bantuan Pangan Dhuafa', 'category': 'Sedekah', 'progress': 0.85, 'target': 'Rp 25.000.000', 'icon': Icons.fastfood},
-    {'title': 'Alat Bantu Dengar Lansia', 'category': 'Medis', 'progress': 0.2, 'target': 'Rp 30.000.000', 'icon': Icons.hearing},
-    {'title': 'Evakuasi Korban Gunung Meletus', 'category': 'Bencana', 'progress': 0.1, 'target': 'Rp 75.000.000', 'icon': Icons.volcano},
-  ];
-
-  late List<String> _categories;
+  // 10 Item Dummy Campaign dipisahkan ke dalam Model
+  late final List<CampaignModel> _campaigns;
+  late final List<String> _categories;
 
   @override
   void initState() {
     super.initState();
+    // Menggunakan Model (CampaignModel) sesuai best practice struktur
+    _campaigns = [
+      CampaignModel(title: 'Bantu Korban Banjir Bandang Demak', category: 'Bencana', progress: 0.7, target: 'Rp 50.000.000', icon: Icons.flood),
+      CampaignModel(title: 'Bantuan Evakuasi Gempa Bumi', category: 'Bencana', progress: 0.4, target: 'Rp 100.000.000', icon: Icons.broken_image),
+      CampaignModel(title: 'Bantu Biaya Operasi Dek Fatih', category: 'Medis', progress: 0.8, target: 'Rp 20.000.000', icon: Icons.healing),
+      CampaignModel(title: 'Penyaluran Oksigen Darurat', category: 'Medis', progress: 0.9, target: 'Rp 15.000.000', icon: Icons.medical_information),
+      CampaignModel(title: 'Zakat Fitrah & Maal 2026', category: 'Zakat', progress: 0.5, target: 'Rp 200.000.000', icon: Icons.mosque),
+      CampaignModel(title: 'Sedekah Subuh Rutin', category: 'Sedekah', progress: 0.6, target: 'Rp 10.000.000', icon: Icons.wb_twilight),
+      CampaignModel(title: 'Pembangunan Masjid Desa', category: 'Sedekah', progress: 0.3, target: 'Rp 150.000.000', icon: Icons.account_balance),
+      CampaignModel(title: 'Bantuan Pangan Dhuafa', category: 'Sedekah', progress: 0.85, target: 'Rp 25.000.000', icon: Icons.fastfood),
+      CampaignModel(title: 'Alat Bantu Dengar Lansia', category: 'Medis', progress: 0.2, target: 'Rp 30.000.000', icon: Icons.hearing),
+      CampaignModel(title: 'Evakuasi Korban Gunung Meletus', category: 'Bencana', progress: 0.1, target: 'Rp 75.000.000', icon: Icons.volcano),
+    ];
+
     // Mengelompokkan / mengurutkan kategori dari list campaign
-    _categories = _campaigns.map((e) => e['category'] as String).toSet().toList();
+    _categories = _campaigns.map((e) => e.category).toSet().toList();
     _categories.sort(); // Diurutkan berdasarkan nama kategori abjad
   }
 
@@ -104,7 +94,7 @@ class _DashboardScreenState extends State<DashboardScreen> {
   }
 
   // Menampilkan Modal Dialog Donasi
-  void _showDonasiDialog(BuildContext context, Map<String, dynamic> campaign) {
+  void _showDonasiDialog(BuildContext context, CampaignModel campaign) {
     final TextEditingController nominalController = TextEditingController();
 
     showDialog(
@@ -112,7 +102,7 @@ class _DashboardScreenState extends State<DashboardScreen> {
       builder: (context) {
         return AlertDialog(
           shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
-          title: Text('Donasi untuk\n${campaign['title']}', style: const TextStyle(fontSize: 16)),
+          title: Text('Donasi untuk\n${campaign.title}', style: const TextStyle(fontSize: 16)),
           content: Column(
             mainAxisSize: MainAxisSize.min,
             crossAxisAlignment: CrossAxisAlignment.start,
@@ -130,7 +120,7 @@ class _DashboardScreenState extends State<DashboardScreen> {
                 ),
               ),
               const SizedBox(height: 12),
-              Text('Saldo Anda: Rp ${formatRupiah(_saldo)}', style: const TextStyle(fontSize: 12, color: Colors.grey)),
+              Text('Saldo Anda: Rp ${CurrencyFormat.formatToRupiah(_saldo)}', style: const TextStyle(fontSize: 12, color: Colors.grey)),
             ],
           ),
           actions: [
@@ -160,7 +150,7 @@ class _DashboardScreenState extends State<DashboardScreen> {
   }
 
   // Fungsi memproses data saat donasi dilakukan
-  void _prosesDonasi(double nominal, Map<String, dynamic> campaign) {
+  void _prosesDonasi(double nominal, CampaignModel campaign) {
     if (nominal <= 0) {
       ScaffoldMessenger.of(context).showSnackBar(
         const SnackBar(content: Text('Nominal tidak valid!'), backgroundColor: Colors.red),
@@ -174,7 +164,7 @@ class _DashboardScreenState extends State<DashboardScreen> {
       });
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(
-          content: Text('Terima kasih! Donasi Rp ${formatRupiah(nominal)} berhasil.'),
+          content: Text('Terima kasih! Donasi Rp ${CurrencyFormat.formatToRupiah(nominal)} berhasil.'),
           backgroundColor: Colors.green,
           behavior: SnackBarBehavior.floating,
         ),
@@ -192,7 +182,6 @@ class _DashboardScreenState extends State<DashboardScreen> {
 
   @override
   Widget build(BuildContext context) {
-    // Menerima data user yang dikirim dari form login
     final String userName = ModalRoute.of(context)?.settings.arguments as String? ?? 'Pengguna';
 
     return Scaffold(
@@ -254,9 +243,9 @@ class _DashboardScreenState extends State<DashboardScreen> {
                       style: TextStyle(color: Colors.white70, fontSize: 14),
                     ),
                     const SizedBox(height: 8),
-                    // Menampilkan saldo secara dinamis
+                    // Menggunakan utility fungsi formatRupiah
                     Text(
-                      'Rp ${formatRupiah(_saldo)}',
+                      'Rp ${CurrencyFormat.formatToRupiah(_saldo)}',
                       style: const TextStyle(color: Colors.white, fontSize: 28, fontWeight: FontWeight.bold),
                     ),
                     const SizedBox(height: 16),
@@ -264,7 +253,6 @@ class _DashboardScreenState extends State<DashboardScreen> {
                       children: [
                         ElevatedButton.icon(
                           onPressed: () {
-                            // Simulasi Top Up (Nambah Saldo)
                             setState(() {
                               _saldo += 100000;
                             });
@@ -345,7 +333,7 @@ class _DashboardScreenState extends State<DashboardScreen> {
 
             // Looping per Kategori
             ..._categories.map((category) {
-              final categoryCampaigns = _campaigns.where((c) => c['category'] == category).toList();
+              final categoryCampaigns = _campaigns.where((c) => c.category == category).toList();
 
               return Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
@@ -372,82 +360,10 @@ class _DashboardScreenState extends State<DashboardScreen> {
                     padding: const EdgeInsets.symmetric(horizontal: 16.0),
                     itemCount: categoryCampaigns.length,
                     itemBuilder: (context, index) {
-                      final item = categoryCampaigns[index];
-                      return Card(
-                        margin: const EdgeInsets.only(bottom: 12),
-                        elevation: 0,
-                        shape: RoundedRectangleBorder(
-                          borderRadius: BorderRadius.circular(16),
-                          side: BorderSide(color: Colors.grey.shade200),
-                        ),
-                        child: Padding(
-                          padding: const EdgeInsets.all(12.0),
-                          child: Row(
-                            crossAxisAlignment: CrossAxisAlignment.start,
-                            children: [
-                              Container(
-                                width: 80,
-                                height: 80,
-                                decoration: BoxDecoration(
-                                  color: Colors.grey.shade100,
-                                  borderRadius: BorderRadius.circular(12),
-                                ),
-                                child: Icon(item['icon'], color: Colors.grey.shade400, size: 36),
-                              ),
-                              const SizedBox(width: 16),
-                              Expanded(
-                                child: Column(
-                                  crossAxisAlignment: CrossAxisAlignment.start,
-                                  children: [
-                                    Text(
-                                      item['title'],
-                                      style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 14),
-                                      maxLines: 2,
-                                      overflow: TextOverflow.ellipsis,
-                                    ),
-                                    const SizedBox(height: 8),
-                                    Row(
-                                      mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                                      children: [
-                                        const Text('Target Donasi:', style: TextStyle(color: Colors.grey, fontSize: 12)),
-                                        Text(
-                                          item['target'],
-                                          style: const TextStyle(color: Colors.blue, fontWeight: FontWeight.bold, fontSize: 12),
-                                        ),
-                                      ],
-                                    ),
-                                    const SizedBox(height: 6),
-                                    ClipRRect(
-                                      borderRadius: BorderRadius.circular(4),
-                                      child: LinearProgressIndicator(
-                                        value: item['progress'],
-                                        minHeight: 6,
-                                        backgroundColor: Colors.grey.shade200,
-                                        valueColor: AlwaysStoppedAnimation<Color>(Colors.blue.shade600),
-                                      ),
-                                    ),
-                                    const SizedBox(height: 12),
-                                    // Tombol Interaksi: Donasi
-                                    Align(
-                                      alignment: Alignment.centerRight,
-                                      child: OutlinedButton(
-                                        onPressed: () => _showDonasiDialog(context, item),
-                                        style: OutlinedButton.styleFrom(
-                                          foregroundColor: Colors.blue,
-                                          side: const BorderSide(color: Colors.blue),
-                                          shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(8)),
-                                          padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
-                                          minimumSize: Size.zero,
-                                        ),
-                                        child: const Text('Donasi', style: TextStyle(fontSize: 12, fontWeight: FontWeight.bold)),
-                                      ),
-                                    ),
-                                  ],
-                                ),
-                              ),
-                            ],
-                          ),
-                        ),
+                      // Menggunakan Widget Eksternal: CampaignCard
+                      return CampaignCard(
+                        campaign: categoryCampaigns[index],
+                        onDonasiTap: () => _showDonasiDialog(context, categoryCampaigns[index]),
                       );
                     },
                   ),
