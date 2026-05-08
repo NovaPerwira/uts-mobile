@@ -49,8 +49,12 @@ class _LoginScreenState extends State<LoginScreen> {
           ),
         );
         
-        // Navigate to Dashboard Page (Halaman 3)
-        Navigator.pushReplacementNamed(context, '/dashboard');
+        // Navigate to Dashboard Page (Halaman 3) with arguments
+        Navigator.pushReplacementNamed(
+          context, 
+          '/dashboard',
+          arguments: _emailController.text, // Passing the email as user data
+        );
       } else {
         setState(() {
           _isLoading = false;
